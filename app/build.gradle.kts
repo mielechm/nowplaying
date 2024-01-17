@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,6 +10,10 @@ plugins {
 android {
     namespace = "com.mielechm.nowplaying"
     compileSdk = 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.mielechm.nowplaying"
@@ -20,6 +26,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val properties: Properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+
+        buildConfigField("String", "API_TOKEN", "\"${properties.getProperty("API_TOKEN")}\"")
     }
 
     buildTypes {
