@@ -1,6 +1,7 @@
 package com.mielechm.nowplaying.features.moviesnowplaying
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,11 +47,6 @@ fun MoviesNowPlayingScreen(navController: NavController) {
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopAppBar() {
 }
 
 @Composable
@@ -100,7 +96,9 @@ fun MoviesNowPlayingList(
 @Composable
 fun MovieEntry(movie: MovieListEntry, navController: NavController, modifier: Modifier = Modifier) {
 
-    Box(contentAlignment = Alignment.Center, modifier = modifier) {
+    Box(contentAlignment = Alignment.Center, modifier = modifier.clickable {
+        navController.navigate("movie_details/${movie.id}")
+    }) {
 
         Column {
             if (movie.poster != "https://image.tmdb.org/t/p/originalnull") {
@@ -135,8 +133,6 @@ fun MovieEntry(movie: MovieListEntry, navController: NavController, modifier: Mo
                     modifier = Modifier.fillMaxSize(),
                     textAlign = TextAlign.Center
                 )
-
-
             }
         }
 
