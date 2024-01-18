@@ -1,5 +1,9 @@
 package com.mielechm.nowplaying.di
 
+import android.content.Context
+import androidx.room.Room
+import com.mielechm.nowplaying.data.FavoritesDao
+import com.mielechm.nowplaying.data.FavoritesDatabase
 import com.mielechm.nowplaying.data.remote.MoviesApi
 import com.mielechm.nowplaying.repository.DefaultMoviesRepository
 import com.mielechm.nowplaying.utils.API_TOKEN
@@ -7,6 +11,7 @@ import com.mielechm.nowplaying.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -27,7 +32,8 @@ object AppModule {
         interceptor.level = HttpLoggingInterceptor.Level.BODY
 
         val okHttpClient = OkHttpClient.Builder().addInterceptor { chain ->
-            val request = chain.request().newBuilder().header("Authorization","Bearer $API_TOKEN").build()
+            val request =
+                chain.request().newBuilder().header("Authorization", "Bearer $API_TOKEN").build()
             chain.proceed(request)
         }.addInterceptor(interceptor).build()
 
@@ -41,5 +47,20 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideMoviesRepository(api: MoviesApi) = DefaultMoviesRepository(api)
+    fun provideFavoriteDb(@ApplicationContext context: Context): FavoritesDatabase {
+        return Room.databaseBuilder(
+            context,
+            FavoritesDatabase::class.java,
+            FavoritesDatabase.DATABASE_NAME
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideFavoriteDao(favoritesDatabase: FavoritesDatabase): FavoritesDao =
+        favoritesDatabase.favoritesDao()
+
+    @Singleton
+    @Provides
+    fun provideMoviesRepository(api: MoviesApi, dao: FavoritesDao) = DefaultMoviesRepository(api, dao)
 }

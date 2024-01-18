@@ -5,5 +5,6 @@ data class MovieListEntry(
     val overview: String,
     val title: String,
     val vote: Double,
-    val poster: String
+    val poster: String,
+    var isFavorite: Boolean = false
 )

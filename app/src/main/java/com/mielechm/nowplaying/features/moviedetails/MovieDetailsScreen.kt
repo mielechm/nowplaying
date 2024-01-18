@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Theaters
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +49,7 @@ fun MovieDetailsScreen(
 ) {
 
     val movie by viewModel.movieDetails.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
 
     viewModel.getMovieDetails(id)
 
@@ -60,6 +63,19 @@ fun MovieDetailsScreen(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.addToFavorites(movie.id) }) {
+                        Icon(
+                            imageVector = if (isFavorite) {
+                                Icons.Filled.Star
+                            } else {
+                                Icons.Outlined.StarBorder
+                            },
+                            contentDescription = "Favorite"
+                        )
+
                     }
                 }
             )

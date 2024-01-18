@@ -2,13 +2,16 @@ package com.mielechm.nowplaying.features.moviesnowplaying
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mielechm.nowplaying.data.entities.Favorite
 import com.mielechm.nowplaying.data.model.MovieListEntry
 import com.mielechm.nowplaying.repository.DefaultMoviesRepository
 import com.mielechm.nowplaying.utils.IMAGE_BASE_URL
 import com.mielechm.nowplaying.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,6 +31,8 @@ class MoviesNowPlayingViewModel @Inject constructor(private val repository: Defa
     private val _end = MutableStateFlow(false)
     val end = _end.asStateFlow()
     private var currentPage = 1
+
+    private val _favorites = MutableStateFlow<List<Favorite>>(listOf())
 
     init {
         currentPage = 1
@@ -53,7 +58,8 @@ class MoviesNowPlayingViewModel @Inject constructor(private val repository: Defa
                             title = it.title,
                             overview = it.overview,
                             poster = "$IMAGE_BASE_URL${it.posterPath}",
-                            vote = it.voteAverage
+                            vote = it.voteAverage,
+                            isFavorite = _favorites.value.contains(Favorite(it.id))
                         )
                     }
 
@@ -71,5 +77,21 @@ class MoviesNowPlayingViewModel @Inject constructor(private val repository: Defa
             }
         }
 
+    }
+
+    fun getFavorites() {
+        viewModelScope.launch {
+            repository.getFavoriteMovies().flowOn(Dispatchers.IO).collect {
+                _favorites.value = it
+                val temp = _movies.value
+
+                for (movie in temp) {
+                    movie.isFavorite = _favorites.value.contains(Favorite(movie.id))
+                }
+
+                _movies.value = temp
+            }
+
+        }
     }
 }

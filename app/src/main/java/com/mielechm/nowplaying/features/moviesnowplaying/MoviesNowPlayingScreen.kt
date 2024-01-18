@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Theaters
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -27,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -58,6 +61,11 @@ fun MoviesNowPlayingList(
     val isLoading by viewModel.isLoading.collectAsState()
     val loadError by viewModel.loadError.collectAsState()
     val end by viewModel.end.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.getFavorites()
+
+    }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         val itemCount = if (movies.size % 2 == 0) {
@@ -135,7 +143,16 @@ fun MovieEntry(movie: MovieListEntry, navController: NavController, modifier: Mo
                 )
             }
         }
-
+        if (movie.isFavorite) {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = "Favorite",
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.BottomEnd),
+                tint = Color.Yellow
+            )
+        }
     }
 }
 

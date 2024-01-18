@@ -2,13 +2,16 @@ package com.mielechm.nowplaying.features.moviedetails
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mielechm.nowplaying.data.entities.Favorite
 import com.mielechm.nowplaying.data.model.MovieDetails
 import com.mielechm.nowplaying.repository.DefaultMoviesRepository
 import com.mielechm.nowplaying.utils.IMAGE_BASE_URL
 import com.mielechm.nowplaying.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +27,9 @@ class MovieDetailsViewModel @Inject constructor(private val repository: DefaultM
 
     private val _loadError = MutableStateFlow("")
     val loadError = _loadError.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite = _isFavorite.asStateFlow()
 
     fun getMovieDetails(id: Int) {
         viewModelScope.launch {
@@ -50,11 +56,37 @@ class MovieDetailsViewModel @Inject constructor(private val repository: DefaultM
                             voteCount = result.data.voteCount
                         )
 
+                    checkIfFavorite(movie.id)
+
                     _loadError.value = ""
                     _isLoading.value = false
                     _movieDetails.value = movie
                 }
             }
+        }
+    }
+
+    fun addToFavorites(id: Int) {
+        checkIfFavorite(id)
+
+        viewModelScope.launch {
+            if (isFavorite.value) {
+                repository.removeFromFavorites(Favorite(id))
+            } else {
+                repository.addToFavorites(Favorite(id))
+            }
+
+            checkIfFavorite(id)
+        }
+
+    }
+
+    private fun checkIfFavorite(id: Int) {
+        viewModelScope.launch {
+            repository.getFavoriteMovies().flowOn(Dispatchers.IO).collect {
+                _isFavorite.value = it.contains(Favorite(id))
+            }
+
         }
     }
 }
