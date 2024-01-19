@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,12 +64,30 @@ fun MoviesNowPlayingList(
     val loadError by viewModel.loadError.collectAsState()
     val end by viewModel.end.collectAsState()
 
+    val searchText by viewModel.searchText.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
+
     LaunchedEffect(key1 = true) {
         viewModel.getFavorites()
+    }
 
+    TextField(
+        value = searchText,
+        onValueChange = viewModel::onSearchTextChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        placeholder = { Text(text = "Search") }
+    )
+
+    if (isSearching) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
     }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
+
         val itemCount = if (movies.size % 2 == 0) {
             movies.size / 2
         } else {

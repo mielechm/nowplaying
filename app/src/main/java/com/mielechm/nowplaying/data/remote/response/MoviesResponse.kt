@@ -2,7 +2,7 @@ package com.mielechm.nowplaying.data.remote.response
 
 import com.google.gson.annotations.SerializedName
 
-data class MoviesNowPlaying(
+data class MoviesResponse(
     val dates: Dates,
     val page: Int,
     @SerializedName("results")

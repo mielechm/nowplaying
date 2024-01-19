@@ -9,18 +9,40 @@ import com.mielechm.nowplaying.utils.IMAGE_BASE_URL
 import com.mielechm.nowplaying.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class MoviesNowPlayingViewModel @Inject constructor(private val repository: DefaultMoviesRepository) :
     ViewModel() {
 
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<MovieListEntry>>(listOf())
+    val searchResults = _searchResults.asStateFlow()
+
     private val _movies = MutableStateFlow<List<MovieListEntry>>(listOf())
-    val movies = _movies.asStateFlow()
+    val movies = searchText.debounce(500L).onEach { _isSearching.update { true } }.combine(_movies) { text, movies ->
+        if (text.isBlank()) {
+            movies
+        } else {
+            movies.filter {
+                it.title.contains(text, ignoreCase = true)
+            }
+        }
+    }.onEach { _isSearching.update { false } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _movies.value)
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -33,6 +55,9 @@ class MoviesNowPlayingViewModel @Inject constructor(private val repository: Defa
     private var currentPage = 1
 
     private val _favorites = MutableStateFlow<List<Favorite>>(listOf())
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
 
     init {
         currentPage = 1
@@ -93,5 +118,9 @@ class MoviesNowPlayingViewModel @Inject constructor(private val repository: Defa
             }
 
         }
+    }
+
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
     }
 }

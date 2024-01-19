@@ -4,7 +4,7 @@ import com.mielechm.nowplaying.data.FavoritesDao
 import com.mielechm.nowplaying.data.entities.Favorite
 import com.mielechm.nowplaying.data.remote.MoviesApi
 import com.mielechm.nowplaying.data.remote.response.MovieDetailsResponse
-import com.mielechm.nowplaying.data.remote.response.MoviesNowPlaying
+import com.mielechm.nowplaying.data.remote.response.MoviesResponse
 import com.mielechm.nowplaying.utils.Resource
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.flow.Flow
@@ -15,9 +15,18 @@ class DefaultMoviesRepository @Inject constructor(
     private val api: MoviesApi,
     private val dao: FavoritesDao
 ) : MoviesRepository {
-    override suspend fun getMoviesNowPlayingPaginated(page: Int): Resource<MoviesNowPlaying> {
+    override suspend fun getMoviesNowPlayingPaginated(page: Int): Resource<MoviesResponse> {
         val response = try {
             api.getMoviesNowPlayingPaginated(page)
+        } catch (e: Exception) {
+            return Resource.Error("Error occurred: ${e.message}")
+        }
+        return Resource.Success(response)
+    }
+
+    override suspend fun searchForMovies(query: String): Resource<MoviesResponse> {
+        val response = try {
+            api.searchForMovie(query)
         } catch (e: Exception) {
             return Resource.Error("Error occurred: ${e.message}")
         }
